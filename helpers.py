@@ -96,3 +96,15 @@ def ecm_regression(F, Z_true, priors: dict, circuit_func: callable):
     sigma_imag = numpyro.sample("sigma_imag", dist.Exponential(rate=1.0))
     numpyro.sample("obs_imag", dist.Normal(Z_pred.imag, sigma_imag), obs=Z_true.imag)
 
+
+def truncnorm2_pdf(x, loc, scale, low, high):
+    """SciPy's truncnorm with human-readable low and high args."""
+    a, b = (low - loc) / scale, (high - loc) / scale
+    return truncnorm.pdf(x, a, b, loc=loc, scale=scale)
+
+
+def truncnorm2_rvs(loc, scale, low, high, size):
+    """SciPy's truncnorm with human-readable low and high args."""
+    a, b = (low - loc) / scale, (high - loc) / scale
+    return truncnorm.rvs(a, b, loc=loc, scale=scale, size=size)
+
