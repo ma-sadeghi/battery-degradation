@@ -4,7 +4,7 @@ impedance==1.7.1
 jax==0.4.21
 matplotlib==3.8.1
 mpire==2.8.0
-numpy==1.26.2
+numpy==1.25.2
 numpyro==0.13.2
 pandas==2.1.4
 scipy==1.11.4
