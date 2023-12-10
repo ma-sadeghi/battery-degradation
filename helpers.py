@@ -108,3 +108,20 @@ def truncnorm2_rvs(loc, scale, low, high, size):
     a, b = (low - loc) / scale, (high - loc) / scale
     return truncnorm.rvs(a, b, loc=loc, scale=scale, size=size)
 
+
+# ! this function is not robust, instead use norm.fit to find loc and scale,
+# ! use low, high = 0, 1 to find a, b -> build a truncnorm using loc, scale, a, b
+def fit_truncnorm(samples, low, high):
+    """Finds the parameters that best fit a truncnorm distribution."""
+    assert len(samples) > 200, "Too few samples"
+    Nx = len(samples) // 20
+    p, edges = np.histogram(samples, bins=Nx, density=True)
+    x = (edges[1:] + edges[:-1]) / 2
+    func = partial(truncnorm2_pdf, low=low, high=high)
+    popt, pcov = curve_fit(func, x, p, bounds=(0, [1, 2]))
+    loc, scale = popt
+    a = (low - loc) / scale
+    b = (high - loc) / scale
+    return a, b, loc, scale
+
+truncnorm.fit2 = fit_truncnorm
