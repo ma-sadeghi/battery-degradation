@@ -40,7 +40,17 @@ def get_test_condition(fname):
 
 def is_valid_eis_file(fname):
     """Returns True if the file is a valid EIS file, False otherwise."""
-    return ('EIS' in fname) and (get_test_condition(fname) is not None)
+    is_fname_valid = ('EIS' in fname) and (get_test_condition(fname) is not None)
+    is_data_valid = True
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            freq, Zreal, Zimag = np.loadtxt(fname, skiprows=1, usecols=(0, 1, 2), unpack=True)
+        assert len(freq) == len(Zreal) == len(Zimag) > 0
+        assert np.all(freq > 0)
+    except Exception:
+        is_data_valid = False
+    return is_fname_valid and is_data_valid
 
 
 def get_cycle_number(fname):
