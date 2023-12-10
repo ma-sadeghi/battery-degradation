@@ -1,7 +1,6 @@
 arviz==0.16.1
 dask==2023.11.0
 impedance==1.7.1
-jax==0.4.20
 jax==0.4.21
 matplotlib==3.8.1
 mpire==2.8.0
