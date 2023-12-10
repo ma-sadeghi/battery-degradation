@@ -1,0 +1,13 @@
+arviz==0.16.1
+dask==2023.11.0
+impedance==1.7.1
+jax==0.4.20
+jax==0.4.21
+matplotlib==3.8.1
+mpire==2.8.0
+numpy==1.26.2
+numpyro==0.13.2
+pandas==2.1.4
+scipy==1.11.4
+seaborn==0.13.0
+tqdm==4.66.1
