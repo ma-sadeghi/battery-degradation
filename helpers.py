@@ -77,3 +77,9 @@ def get_cycle_number(fname):
     cycle_number = 4 * (int(first_id) - 1) + identifiers.index(second_id) + 1
 
     return cycle_number
+
+
+def filter_by_condition(fnames, condition):
+    """Returns a list of filenames that match the given condition."""
+    return [f for f in fnames if get_test_condition(f) == condition]
+
