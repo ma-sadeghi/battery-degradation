@@ -83,3 +83,16 @@ def filter_by_condition(fnames, condition):
     """Returns a list of filenames that match the given condition."""
     return [f for f in fnames if get_test_condition(f) == condition]
 
+
+def ecm_regression(F, Z_true, priors: dict, circuit_func: callable):
+    """Defines the model for Bayesian inference of a circuit model."""
+    # Sample each element of X separately
+    X = jnp.array([numpyro.sample(k, v) for k, v in priors.items()])
+    # Predict Z using the model
+    Z_pred = circuit_func(X, F)
+    # Define observation model for real and imaginary parts of Z
+    sigma_real = numpyro.sample("sigma_real", dist.Exponential(rate=1.0))
+    numpyro.sample("obs_real", dist.Normal(Z_pred.real, sigma_real), obs=Z_true.real)
+    sigma_imag = numpyro.sample("sigma_imag", dist.Exponential(rate=1.0))
+    numpyro.sample("obs_imag", dist.Normal(Z_pred.imag, sigma_imag), obs=Z_true.imag)
+
