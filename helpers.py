@@ -1,5 +1,16 @@
 import os
 import re
+import warnings
+from functools import partial
+
+import jax.numpy as jnp
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import numpyro
+import numpyro.distributions as dist
+from scipy.optimize import curve_fit
+from scipy.stats import truncnorm
 
 __all__ = [
     'get_first_identifier',
@@ -7,6 +18,12 @@ __all__ = [
     'get_test_condition',
     'get_cycle_number',
     'is_valid_eis_file',
+    'filter_by_condition',
+    'override_mpl_colors',
+    'truncnorm2_pdf',
+    'truncnorm2_rvs',
+    'fit_truncnorm',
+    'ecm_regression',
 ]
 
 
@@ -125,3 +142,43 @@ def fit_truncnorm(samples, low, high):
     return a, b, loc, scale
 
 truncnorm.fit2 = fit_truncnorm
+
+
+def override_mpl_colors():
+    """Overrides matplotlib's default colors with Flexoki colors."""
+    # Define the Flexoki-Light color scheme based on the provided table
+    # Original sequence: red, orange, yellow, green, cyan, blue, purple, magenta
+    flexoki_light_colors = {
+        "red": "#D14D41",
+        "blue": "#4385BE",
+        "green": "#879A39",
+        "orange": "#DA702C",
+        "purple": "#8B7EC8",
+        "yellow": "#D0A215",
+        "cyan": "#3AA99F",
+        "magenta": "#CE5D97"
+    }
+
+    # Define the Flexoki-Light style
+    flexoki_light_style = {
+        "axes.prop_cycle": mpl.cycler(color=list(flexoki_light_colors.values())),
+        "axes.facecolor": "white",
+        "axes.edgecolor": "black",
+        "axes.grid": True,
+        "axes.axisbelow": True,
+        "axes.labelcolor": "black",
+        "figure.facecolor": "white",
+        "grid.color": "lightgray",
+        "text.color": "black",
+        "xtick.color": "black",
+        "ytick.color": "black",
+        "xtick.direction": "out",
+        "ytick.direction": "out",
+        "lines.color": flexoki_light_colors["blue"],
+        "patch.edgecolor": "black",
+        "axes.spines.top": False,
+        "axes.spines.right": False
+    }
+
+    # Apply the Flexoki-Light style
+    plt.style.use(flexoki_light_style)
