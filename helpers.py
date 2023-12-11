@@ -3,12 +3,14 @@ import re
 import warnings
 from functools import partial
 
+import autoeis as ae
 import jax.numpy as jnp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import numpyro
 import numpyro.distributions as dist
+from impedance.models.circuits import CustomCircuit
 from scipy.optimize import curve_fit
 from scipy.stats import truncnorm
 
@@ -24,6 +26,7 @@ __all__ = [
     'truncnorm2_rvs',
     'fit_truncnorm',
     'ecm_regression',
+    'fit_circuit_parameters'
 ]
 
 
@@ -182,3 +185,34 @@ def override_mpl_colors():
 
     # Apply the Flexoki-Light style
     plt.style.use(flexoki_light_style)
+
+
+def fit_circuit_parameters(
+    circuit_str: str,
+    Z: np.ndarray[complex],
+    freq: np.ndarray[float],
+    maxiter=10,
+    return_circuit=False
+):
+    """Finds parameters that best fit the EIS measurements"""
+    def _fit(circuit_str, Z, freq):
+        num_params = ae.utils.count_params(circuit_str)
+        circuit = CustomCircuit(
+            circuit=ae.utils.impedancepy_circuit(circuit_str),
+            initial_guess=np.random.rand(num_params)
+        )
+        circuit.fit(freq, Z)
+        return circuit
+
+    for _ in range(maxiter):
+        try:
+            circuit = _fit(circuit_str, Z, freq)
+            break
+        except Exception:
+            continue
+    else:
+        raise RuntimeError("Failed to fit the circuit")
+    
+    if return_circuit:
+        return circuit
+    return circuit.parameters_
