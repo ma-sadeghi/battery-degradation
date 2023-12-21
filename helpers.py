@@ -208,10 +208,11 @@ def fit_circuit_parameters(
         try:
             circuit = _fit(circuit_str, Z, freq)
             break
-        except Exception:
+        except Exception as e:
+            err = str(e)
             continue
     else:
-        raise RuntimeError("Failed to fit the circuit")
+        raise RuntimeError(f"Failed to fit the circuit. Error: {err}")
     
     if return_circuit:
         return circuit
