@@ -162,6 +162,7 @@ cython_debug/
 # Project-specific ignores
 datasets/
 archive/
+results/
 *.code-workspace
 *.nc
 *.pkl
