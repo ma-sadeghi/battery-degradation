@@ -282,7 +282,9 @@ def perform_bayesian_inference(Zlist, freq, priors, circuit_fn, num_warmup, num_
         "num_warmup": num_warmup,
         "num_samples": num_samples
     }
-    f = partial(_perform_bayesian_inference, **bi_kwargs)
+    
+    def f(Z, seed):
+        return _perform_bayesian_inference(Z, seed=seed, **bi_kwargs)
 
     nproc = os.cpu_count()
     mpire_kwargs = {
@@ -295,9 +297,10 @@ def perform_bayesian_inference(Zlist, freq, priors, circuit_fn, num_warmup, num_
     # Set a different seed for each process
     rng_key = jax.random.PRNGKey(0)
     seeds = jax.random.split(rng_key, len(Zlist))
+    f_args = zip(Zlist, seeds)
 
     with WorkerPool(n_jobs=nproc) as pool:
-        mcmc_list = pool.map(f, Zlist, seeds, **mpire_kwargs)
+        mcmc_list = pool.map(f, f_args, **mpire_kwargs)
 
     return mcmc_list
 
