@@ -1,3 +1,4 @@
+import glob
 import os
 import re
 import warnings
@@ -15,19 +16,21 @@ from scipy.optimize import curve_fit
 from scipy.stats import truncnorm
 
 __all__ = [
-    'get_first_identifier',
-    'get_second_identifier',
-    'get_test_condition',
-    'get_cycle_number',
-    'is_valid_eis_file',
-    'filter_by_condition',
-    'override_mpl_colors',
-    'truncnorm2_pdf',
-    'truncnorm2_rvs',
-    'fit_truncnorm',
-    'ecm_regression',
-    'fit_circuit_parameters',
-    'find_dir',
+    "get_first_identifier",
+    "get_second_identifier",
+    "get_test_condition",
+    "get_cycle_number",
+    "is_valid_eis_file",
+    "filter_by_condition",
+    "override_mpl_colors",
+    "truncnorm2_pdf",
+    "truncnorm2_rvs",
+    "fit_truncnorm",
+    "ecm_regression",
+    "fit_circuit_parameters",
+    "find_dir_path",
+    "load_eis_dataset",
+    "get_nearest_index"
 ]
 
 
@@ -220,10 +223,28 @@ def fit_circuit_parameters(
     return circuit.parameters_
 
 
-def find_dir(name, where="."):
+def find_dir_path(name, where="."):
     """Returns the path of the first directory that matches the given name."""
     for root, dirs, files in os.walk(where):
-        for dir in dirs:
-            if dir == name:
-                return os.path.join(root, dir)
+        for dir_ in dirs:
+            if dir_ == name:
+                return os.path.join(root, dir_)
     return None
+
+
+def load_eis_dataset(cell_id, condition, path_datasets):
+    """Loads the EIS dataset for the given cell ID and condition."""
+    # Find the path to the dataset
+    path_dataset = find_dir_path(cell_id, where=path_datasets)
+    # Find all the EIS files in the dataset
+    flist = glob.glob(os.path.join(path_dataset, "*.txt"))
+    flist = [f for f in flist if is_valid_eis_file(f)]
+    flist = [f for f in flist if get_test_condition(f) == condition]
+    flist.sort(key=get_cycle_number)
+    cycles = np.array([get_cycle_number(fpath) for fpath in flist])
+    return flist, cycles
+
+
+def get_nearest_index(arr, elem):
+    """Returns the index whose entry in `arr` is closest to ``elem``."""
+    return arr[np.argmin(np.abs(arr - elem))]
