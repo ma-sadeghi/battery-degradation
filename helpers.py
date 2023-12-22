@@ -197,9 +197,9 @@ def fit_circuit_parameters(
 ):
     """Finds parameters that best fit the EIS measurements"""
     def _fit(circuit_str, Z, freq):
-        num_params = ae.utils.count_params(circuit_str)
+        num_params = ae.parser.count_parameters(circuit_str)
         circuit = CustomCircuit(
-            circuit=ae.utils.impedancepy_circuit(circuit_str),
+            circuit=ae.parser.convert_to_impedance_format(circuit_str),
             initial_guess=np.random.rand(num_params)
         )
         circuit.fit(freq, Z)
