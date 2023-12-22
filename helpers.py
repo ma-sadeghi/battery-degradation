@@ -247,4 +247,4 @@ def load_eis_dataset(cell_id, condition, path_datasets):
 
 def get_nearest_index(arr, elem):
     """Returns the index whose entry in `arr` is closest to ``elem``."""
-    return arr[np.argmin(np.abs(arr - elem))]
+    return np.argmin(np.abs(arr - elem))
