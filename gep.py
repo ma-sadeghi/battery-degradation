@@ -1,6 +1,5 @@
 # %%
 # Imports and initialization
-import glob
 import os
 
 import autoeis as ae
