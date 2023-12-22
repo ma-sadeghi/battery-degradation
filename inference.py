@@ -7,10 +7,8 @@ import pickle
 import arviz as az
 import autoeis as ae
 import jax
-import matplotlib.pyplot as plt
 import numpy as np
 import numpyro
-from impedance.models.circuits import CustomCircuit
 from numpyro.infer import MCMC, NUTS
 from tqdm.auto import tqdm
 import typer
@@ -22,7 +20,7 @@ numpyro.set_platform("cpu")
 assert jax.lib.xla_bridge.get_backend().platform == "cpu"
 
 
-def inference(cell_id: str, condition: str, path_export="results"):
+def inference(cell_id: str, condition: str, path_export: str):
     """Performs Bayesian inference on the matching Jones2022 dataset"""
     header = f"Cell ID: {cell_id}, condition: {condition}"
     print(f"{header}\n{'-'*len(header)}\n")
