@@ -26,7 +26,8 @@ __all__ = [
     'truncnorm2_rvs',
     'fit_truncnorm',
     'ecm_regression',
-    'fit_circuit_parameters'
+    'fit_circuit_parameters',
+    'find_dir',
 ]
 
 
@@ -217,3 +218,12 @@ def fit_circuit_parameters(
     if return_circuit:
         return circuit
     return circuit.parameters_
+
+
+def find_dir(name, where="."):
+    """Returns the path of the first directory that matches the given name."""
+    for root, dirs, files in os.walk(where):
+        for dir in dirs:
+            if dir == name:
+                return os.path.join(root, dir)
+    return None
