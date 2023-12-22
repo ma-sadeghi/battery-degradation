@@ -25,7 +25,7 @@ def gep(cell_id: str, condition: str, cycle: int, path_export: str):
     # Load the dataset and run GEP
 
     # Load the data (charge/discharge cycles)
-    flist, cycles = load_eis_dataset(cell_id, condition, path_dataset="datasets/Jones2022")
+    flist, cycles = load_eis_dataset(cell_id, condition, path_datasets="datasets/Jones2022")
 
     # Find the nearest available cycle number to the given cycle
     idx = get_nearest_index(cycles, cycle)
