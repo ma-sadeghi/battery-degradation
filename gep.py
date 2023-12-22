@@ -25,27 +25,22 @@ def gep(cell_id: str, condition: str, cycle: int, path_export: str):
     # Load the dataset and run GEP
 
     # Load the data (charge/discharge cycles)
-    path_dataset = find_dir(cell_id, where="datasets/Jones2022")
-    flist = glob.glob(os.path.join(path_dataset, "*.txt"))
-    flist = [f for f in flist if is_valid_eis_file(f)]
-    flist = [f for f in flist if get_test_condition(f) == condition]
-    flist.sort(key=get_cycle_number)
+    flist, cycles = load_eis_dataset(cell_id, condition, path_dataset="datasets/Jones2022")
 
     # Find the nearest available cycle number to the given cycle
-    cycles = np.array([get_cycle_number(fpath) for fpath in flist])
-    idx = np.argmin(np.abs(cycles - cycle))
-    if cycles[idx] != cycle:
-        print(f"Cycle {cycle} not found, using cycle {cycles[idx]} instead.")
-        cycle = cycles[idx]
+    idx = get_nearest_index(cycles, cycle)
+    cycle, fpath = cycles[idx], flist[idx]
 
     # Load impedance data
-    freq, Zreal, Zimag = np.loadtxt(flist[idx], skiprows=1, unpack=True, usecols=(0, 1, 2))
+    freq, Zreal, Zimag = np.loadtxt(fpath, skiprows=1, unpack=True, usecols=(0, 1, 2))
     # -Im(Z) is stored in the file, so we need to flip the sign
     Z = Zreal - 1j * Zimag
 
     # Run GEP and export to disk
-    replicate_id = 0
     circuits = ae.core.generate_equivalent_circuits(Z, freq, iters=10, parallel=False)
+    
+    # Export the results to disk, if path already exists, increment the replicate number
+    replicate_id = 0
     fpath = os.path.join(path_export, f"{cell_id}-{condition}-ecm-C{cycle}R{replicate_id}.csv")
     while os.path.exists(fpath):
         fpath = fpath.replace(f"C{cycle}R{replicate_id}", f"C{cycle}R{replicate_id+1}")
