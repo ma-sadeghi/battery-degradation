@@ -5,6 +5,7 @@ import warnings
 from functools import partial
 
 import autoeis as ae
+import jax
 import jax.numpy as jnp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -12,6 +13,8 @@ import numpy as np
 import numpyro
 import numpyro.distributions as dist
 from impedance.models.circuits import CustomCircuit
+from mpire import WorkerPool
+from numpyro.infer import MCMC, NUTS
 from scipy.optimize import curve_fit
 from scipy.stats import truncnorm
 
@@ -30,7 +33,9 @@ __all__ = [
     "fit_circuit_parameters",
     "find_dir_path",
     "load_eis_dataset",
-    "get_nearest_index"
+    "get_nearest_index",
+    "perform_bayesian_inference",
+    "load_impedance_data"
 ]
 
 
@@ -248,3 +253,57 @@ def load_eis_dataset(cell_id, condition, path_datasets):
 def get_nearest_index(arr, elem):
     """Returns the index whose entry in `arr` is closest to ``elem``."""
     return np.argmin(np.abs(arr - elem))
+
+
+def _perform_bayesian_inference(Z, freq, priors, circuit_fn, num_warmup, num_samples, seed):
+    """Performs Bayesian inference on ECM components for one (Z,freq) dataset."""
+    nuts_kernel = NUTS(ecm_regression)
+    kwargs_mcmc = {
+        "num_warmup": num_warmup,
+        "num_samples": num_samples,
+        "num_chains": 1,
+        "progress_bar": False
+    }
+    mcmc = MCMC(nuts_kernel, **kwargs_mcmc)
+    try:
+        mcmc.run(seed, F=freq, Z_true=Z, priors=priors, circuit_func=circuit_fn)
+    except Exception as e:
+        print(f"Failed to run MCMC. Error: {e}")
+        mcmc = None
+    return mcmc
+
+
+def perform_bayesian_inference(Zlist, freq, priors, circuit_fn, num_warmup, num_samples):
+    """Performs Bayesian inference on ECM components in parallel (multiple datasets)."""
+    bi_kwargs = {
+        "freq": freq,
+        "priors": priors,
+        "circuit_fn": circuit_fn,
+        "num_warmup": num_warmup,
+        "num_samples": num_samples
+    }
+    f = partial(_perform_bayesian_inference, **bi_kwargs)
+
+    nproc = os.cpu_count()
+    mpire_kwargs = {
+        "iterable_len": len(Zlist),
+        "progress_bar": True,
+        "progress_bar_style": "notebook",
+        "progress_bar_options": {"desc": "Bayesian Inference"},
+    }
+
+    # Set a different seed for each process
+    rng_key = jax.random.PRNGKey(0)
+    seeds = jax.random.split(rng_key, len(Zlist))
+
+    with WorkerPool(n_jobs=nproc) as pool:
+        mcmc_list = pool.map(f, Zlist, seeds, **mpire_kwargs)
+
+    return mcmc_list
+
+
+def load_impedance_data(fpath):
+    """Loads impedance data from a file; row 1 -> header, cols -> f, Re(Z), -Im(Z)."""
+    freq, Zreal, Zimag = np.loadtxt(fpath, skiprows=1, usecols=(0, 1, 2), unpack=True)
+    Z = Zreal - 1j * Zimag
+    return Z, freq
