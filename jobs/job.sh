@@ -18,6 +18,6 @@ cd $ROOT_DIR
 
 condition="charge"
 cell_id=$(sed -n "${SLURM_ARRAY_TASK_ID}p" cell_id_list_failed.txt)
-# echo "Cell ID: $cell_id, condition: $condition"
+path_export="$ROOT_DIR/results/trace"
 
-python inference.py $cell_id $condition
+python inference.py $cell_id $condition $path_export
